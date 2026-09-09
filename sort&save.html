@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sort & Save: เกมแยกขยะช่วยโลก</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Kanit', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #eef9f1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .game-container {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        h1 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            background-color: #f1f8e9;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .item-card {
+            background-color: #ffffff;
+            border: 2px dashed #81c784;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            cursor: grab;
+            transition: transform 0.2s;
+        }
+
+        .item-card:active {
+            cursor: grabbing;
+        }
+
+        .item-icon {
+            font-size: 4rem;
+            display: block;
+        }
+
+        .item-name {
+            font-size: 1.2rem;
+            color: #333;
+            margin-top: 5px;
+        }
+
+        .bins-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .bin {
+            border-radius: 10px;
+            padding: 15px 10px;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+            user-select: none;
+        }
+
+        .bin:hover {
+            transform: scale(1.03);
+        }
+
+        .bin:active {
+            transform: scale(0.97);
+        }
+
+        .bin-green { background-color: #4caf50; } /* ขยะอินทรีย์ */
+        .bin-yellow { background-color: #fbc02d; color: #333; } /* ขยะรีไซเคิล */
+        .bin-blue { background-color: #2196f3; } /* ขยะทั่วไป */
+        .bin-red { background-color: #f44336; } /* ขยะอันตราย */
+
+        .bin-title {
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .bin-desc {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        .knowledge-box {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f5e9;
+            border-left: 5px solid #2e7d32;
+            text-align: left;
+            font-size: 0.95rem;
+            min-height: 70px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .btn-restart {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #2e7d32;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+            display: none;
+        }
+
+        .btn-restart:hover {
+            background-color: #1b5e20;
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container">
+    <h1>🌱 Sort & Save: แยกขยะช่วยโลก</h1>
+    <p style="color: #666; margin-bottom: 15px;">คลิกเลือกถังขยะให้ถูกต้องตามประเภทขยะที่ปรากฏ</p>
+
+    <div class="stats">
+        <div>คะแนน: <span id="score" style="color: #2e7d32;">0</span></div>
+        <div>ข้อที่เหลือ: <span id="remaining">0</span></div>
+    </div>
+
+    <!-- การ์ดแสดงขยะ -->
+    <div id="game-area">
+        <div class="item-card" id="item-card">
+            <span class="item-icon" id="item-icon">🍎</span>
+            <div class="item-name" id="item-name">เศษแอปเปิล</div>
+        </div>
+
+        <!-- ถังขยะทั้ง 4 ประเภท -->
+        <div class="bins-container">
+            <div class="bin bin-green" onclick="checkAnswer('green')">
+                <div class="bin-title">ถังเขียว</div>
+                <div class="bin-desc">ขยะย่อยสลาย / อินทรีย์</div>
+            </div>
+            <div class="bin bin-yellow" onclick="checkAnswer('yellow')">
+                <div class="bin-title">ถังเหลือง</div>
+                <div class="bin-desc">ขยะรีไซเคิล</div>
+            </div>
+            <div class="bin bin-blue" onclick="checkAnswer('blue')">
+                <div class="bin-title">ถังน้ำเงิน</div>
+                <div class="bin-desc">ขยะทั่วไป</div>
+            </div>
+            <div class="bin bin-red" onclick="checkAnswer('red')">
+                <div class="bin-title">ถังแดง</div>
+                <div class="bin-desc">ขยะอันตราย</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- กล่องความรู้เสริม (Serious Game Learning Component) -->
+    <div class="knowledge-box" id="knowledge-box">
+        💡 <b>เกร็ดความรู้:</b> การแยกขยะอย่างถูกต้องจะช่วยลดปริมาณขยะที่ต้องนำไปฝังกลบ และช่วยให้กระบวนการรีไซเคิลมีประสิทธิภาพมากขึ้น!
+    </div>
+
+    <button class="btn-restart" id="btn-restart" onclick="startGame()">เล่นใหม่อีกครั้ง</button>
+</div>
+
+<script>
+    // ข้อมูลขยะสำหรับการเรียนรู้
+    const trashItems = [
+        {
+            name: "เศษแอปเปิล / เศษอาหาร",
+            icon: "🍎",
+            type: "green",
+            info: "ขยะอินทรีย์สามารถย่อยสลายได้ง่าย นำไปทำปุ๋ยหมักหรือน้ำหมักชีวภาพช่วยลดก๊าซเรือนกระจกได้"
+        },
+        {
+            name: "ขวดพลาสติก (PET)",
+            icon: "🍾",
+            type: "yellow",
+            info: "ขยะรีไซเคิล! ควรล้างทำความสะอาดและบีบให้แบนก่อนทิ้ง เพื่อหลีกเลี่ยงการใช้พื้นที่และนำไปหลอมใหม่ได้"
+        },
+        {
+            name: "กระป๋องน้ำอัดลม",
+            icon: "🥫",
+            type: "yellow",
+            info: "อลูมิเนียมเป็นวัสดุที่รีไซเคิลได้ไม่จำกัดจำนวนครั้ง ช่วยประหยัดพลังงานในการผลิตใหม่ได้ถึง 95%"
+        },
+        {
+            name: "ถ่านไฟฉายใช้แล้ว",
+            icon: "🔋",
+            type: "red",
+            info: "ขยะอันตราย! มีสารเคมีและโลหะหนัก مثل แคดเมียม ตะกั่ว ต้องแยกทิ้งเพื่อนำไปกำจัดอย่างถูกวิธี ไม่ให้รั่วซึมลงดิน"
+        },
+        {
+            name: "ซองขนมกรุบกรอบ",
+            icon: "🍿",
+            type: "blue",
+            info: "ขยะทั่วไป! เป็นพลาสติกหลายชั้นย่อยสลายยากและรีไซเคิลไม่คุ้มค่า ต้องส่งเข้าโรงงานผลิตพลังงานหรือฝังกลบ"
+        },
+        {
+            name: "หลอดไฟเก่า",
+            icon: "💡",
+            type: "red",
+            info: "ขยะอันตราย! เนื่องจากมีปรอทปนเปื้อน หากแตกหักอาจเป็นอันตรายต่อสุขภาพและสิ่งแวดล้อม"
+        },
+        {
+            name: "ใบไม้แห้ง",
+            icon: "🍂",
+            type: "green",
+            info: "ขยะอินทรีย์! สามารถนำไปทำเป็นหมักปุ๋ยบำรุงดิน แทนการเผาที่ทำให้เกิดฝุ่น PM 2.5"
+        },
+        {
+            name: "กล่องโฟมเปื้อนอาหาร",
+            icon: "🍱",
+            type: "blue",
+            info: "ขยะทั่วไป! โฟมที่เปื้อนคราบอาหารรีไซเคิลได้ยาก ควรหลีกเลี่ยงการใช้งานแล้วหันมาใช้ภาชนะใช้ซ้ำ"
+        }
+    ];
+
+    let currentItems = [];
+    let currentIndex = 0;
+    let score = 0;
+
+    function startGame() {
+        // สุ่มลำดับคำถาม
+        currentItems = [...trashItems].sort(() => Math.random() - 0.5);
+        currentIndex = 0;
+        score = 0;
+        
+        document.getElementById('score').innerText = score;
+        document.getElementById('btn-restart').style.display = 'none';
+        document.getElementById('game-area').style.display = 'block';
+        
+        showNextItem();
+    }
+
+    function showNextItem() {
+        if (currentIndex < currentItems.length) {
+            const item = currentItems[currentIndex];
+            document.getElementById('item-icon').innerText = item.icon;
+            document.getElementById('item-name').innerText = item.name;
+            document.getElementById('remaining').innerText = currentItems.length - currentIndex;
+        } else {
+            endGame();
+        }
+    }
+
+    function checkAnswer(selectedType) {
+        const item = currentItems[currentIndex];
+        const knowledgeBox = document.getElementById('knowledge-box');
+
+        if (selectedType === item.type) {
+            score += 10;
+            document.getElementById('score').innerText = score;
+            knowledgeBox.innerHTML = `✅ <b>ถูกต้อง!</b> ${item.info}`;
+            knowledgeBox.style.backgroundColor = '#e8f5e9';
+            knowledgeBox.style.borderColor = '#2e7d32';
+        } else {
+            knowledgeBox.innerHTML = `❌ <b>ยังไม่ถูกต้อง!</b> ${item.name} ควรทิ้งลง<b>${getBinTypeName(item.type)}</b> <br>💡 ${item.info}`;
+            knowledgeBox.style.backgroundColor = '#ffebee';
+            knowledgeBox.style.borderColor = '#c62828';
+        }
+
+        currentIndex++;
+        showNextItem();
+    }
+
+    function getBinTypeName(type) {
+        switch(type) {
+            case 'green': return 'ถังขยะอินทรีย์ (สีเขียว)';
+            case 'yellow': return 'ถังขยะรีไซเคิล (สีเหลือง)';
+            case 'blue': return 'ถังขยะทั่วไป (สีน้ำเงิน)';
+            case 'red': return 'ถังขยะอันตราย (สีแดง)';
+        }
+    }
+
+    function endGame() {
+        document.getElementById('game-area').style.display = 'none';
+        document.getElementById('remaining').innerText = 0;
+        
+        const knowledgeBox = document.getElementById('knowledge-box');
+        knowledgeBox.style.backgroundColor = '#e3f2fd';
+        knowledgeBox.style.borderColor = '#1565c0';
+        
+        let message = '';
+        if(score >= 70) {
+            message = '🎉 <b>สุดยอดมาก!คุณคือผู้เชี่ยวชาญด้านการแยกขยะ!</b><br>ช่วยลดขยะและปกป้องสิ่งแวดล้อมได้อย่างมีประสิทธิภาพ';
+        } else if(score >= 40) {
+            message = 'เกือบดีแล้ว! ลองทบทวนเกร็ดความรู้แล้วมาเล่นใหม่อีกครั้งเพื่อความแม่นยำนะ!';
+        } else {
+            message = 'พยายามอีกนิด! การแยกขยะต้องใช้ความเข้าใจ มาลองฝึกซ้อมใหม่อีกรอบกันเลย!';
+        }
+
+        knowledgeBox.innerHTML = `🏆 <b>จบเกม! คุณได้คะแนนทั้งหมด ${score} คะแนน</b><br>${message}`;
+        document.getElementById('btn-restart').style.display = 'inline-block';
+    }
+
+    // เริ่มเกมทันทีเมื่อโหลดหน้าเว็บ
+    startGame();
+</script>
+
+</body>
+</html>
