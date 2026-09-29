@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feel Finder: Look, Think, Feel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #F3F4F6;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        .text-size-sm { font-size: 0.9rem; }
+        .text-size-md { font-size: 1.1rem; }
+        .text-size-lg { font-size: 1.3rem; }
+        .text-size-xl { font-size: 1.5rem; }
+
+        .btn-bounce {
+            transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.15s ease;
+        }
+        .btn-bounce:active {
+            transform: scale(0.95);
+        }
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+        }
+        .pulse-gentle {
+            animation: pulseGentle 3s infinite;
+        }
+        @keyframes pulseGentle {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-700 bg-sky-50 flex flex-col justify-between p-2 md:p-6 overflow-x-hidden">
+
+    <header class="max-w-4xl mx-auto w-full bg-white/90 backdrop-blur-md rounded-3xl p-4 mb-4 card-shadow border border-sky-100 flex justify-between items-center flex-wrap gap-2">
+        <div class="flex items-center gap-3 cursor-pointer" onclick="showScreen('headquarters')">
+            <div class="w-12 h-12 bg-teal-100 text-teal-600 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-inner">
+                🔍
+            </div>
+            <div>
+                <h1 class="text-xl md:text-2xl font-bold text-teal-800 leading-tight">Feel Finder</h1>
+                <p class="text-xs text-teal-600 font-medium">Look, Think, Feel</p>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-2 md:gap-4">
+            <div class="bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-2xl flex items-center gap-2">
+                <span class="text-xl">⭐</span>
+                <span id="header-score" class="font-bold text-amber-700 text-lg">0</span>
+                <span class="text-xs text-amber-600">คะแนน</span>
+            </div>
+            <button onclick="toggleAudio()" id="audio-toggle-btn" class="p-2.5 bg-slate-100 hover:bg-slate-200 rounded-2xl text-xl transition btn-bounce" title="เสียงเอฟเฟกต์">
+                🔊
+            </button>
+            <button onclick="showScreen('settings')" class="p-2.5 bg-slate-100 hover:bg-slate-200 rounded-2xl text-xl transition btn-bounce" title="ตั้งค่า">
+                ⚙️
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto w-full flex-grow flex flex-col justify-center">
+
+        <!-- 1. HEADQUARTERS (HUB WORLD) -->
+        <section id="screen-headquarters" class="space-y-6">
+            <div class="bg-white rounded-3xl p-6 card-shadow border border-sky-100 text-center relative overflow-hidden">
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-teal-50 rounded-full opacity-50"></div>
+                <div class="relative z-10 max-w-xl mx-auto">
+                    <span class="inline-block px-4 py-1.5 bg-teal-100 text-teal-800 rounded-full text-sm font-semibold mb-3">
+                        ยินดีต้อนรับ นักสำรวจอารมณ์! 🌟
+                    </span>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-800 mb-2">วันนี้คุณพร้อมจะเรียนรู้อารมณ์ของเพื่อนๆ หรือยัง?</h2>
+                    <p class="text-slate-500 text-sm md:text-base mb-6">สังเกตใบหน้า ท่าทาง และสถานการณ์ เพื่อค้นหาอารมณ์ที่ซ่อนอยู่</p>
+                    
+                    <div class="flex flex-wrap justify-center gap-3">
+                        <button onclick="showScreen('learning-room')" class="px-5 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded-2xl font-medium shadow-md hover:shadow-lg transition flex items-center gap-2 btn-bounce">
+                            <span>📖</span> ห้องเรียนรู้การ์ดอารมณ์ (<span id="unlocked-cards-count">0</span>/15)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LEVEL SELECTION GRID -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Level 1 -->
+                <div onclick="startLevel(1)" class="bg-white hover:bg-emerald-50/50 p-5 rounded-3xl card-shadow border-2 border-emerald-100 cursor-pointer transition btn-bounce group relative overflow-hidden">
+                    <div class="flex items-start gap-4">
+                        <div class="w-16 h-16 rounded-2xl bg-emerald-100 flex items-center justify-center text-3xl group-hover:scale-110 transition">
+                            😊
+                        </div>
+                        <div class="flex-1">
+                            <span class="text-xs font-bold text-emerald-600 uppercase tracking-wider">ระดับที่ 1</span>
+                            <h3 class="text-lg font-bold text-slate-800 mb-1">การรู้จำอารมณ์พื้นฐาน</h3>
+                            <p class="text-xs text-slate-500 mb-3">สุข, เศร้า, โกรธ, กลัว</p>
+                            <div class="w-full bg-slate-100 rounded-full h-2">
+                                <div id="lvl1-progress" class="bg-emerald-500 h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Level 2 -->
+                <div onclick="startLevel(2)" class="bg-white hover:bg-sky-50/50 p-5 rounded-3xl card-shadow border-2 border-sky-100 cursor-pointer transition btn-bounce group relative overflow-hidden">
+                    <div class="flex items-start gap-4">
+                        <div class="w-16 h-16 rounded-2xl bg-sky-100 flex items-center justify-center text-3xl group-hover:scale-110 transition">
+                            😮
+                        </div>
+                        <div class="flex-1">
+                            <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">ระดับที่ 2</span>
+                            <h3 class="text-lg font-bold text-slate-800 mb-1">ตามหาคำใบ้อารมณ์</h3>
+                            <p class="text-xs text-slate-500 mb-3">ประหลาดใจ, กังวล, ผิดหวัง, สงบ</p>
+                            <div class="w-full bg-slate-100 rounded-full h-2">
+                                <div id="lvl2-progress" class="bg-sky-500 h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Level 3 -->
+                <div onclick="startLevel(3)" class="bg-white hover:bg-amber-50/50 p-5 rounded-3xl card-shadow border-2 border-amber-100 cursor-pointer transition btn-bounce group relative overflow-hidden">
+                    <div class="flex items-start gap-4">
+                        <div class="w-16 h-16 rounded-2xl bg-amber-100 flex items-center justify-center text-3xl group-hover:scale-110 transition">
+                            🏆
+                        </div>
+                        <div class="flex-1">
+                            <span class="text-xs font-bold text-amber-600 uppercase tracking-wider">ระดับที่ 3</span>
+                            <h3 class="text-lg font-bold text-slate-800 mb-1">อารมณ์ในบริบทสังคม</h3>
+                            <p class="text-xs text-slate-500 mb-3">ภาคภูมิใจ, หงุดหงิด, ตื่นเต้น, ประหม่า</p>
+                            <div class="w-full bg-slate-100 rounded-full h-2">
+                                <div id="lvl3-progress" class="bg-amber-500 h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bonus Level -->
+                <div onclick="startLevel(4)" class="bg-white hover:bg-rose-50/50 p-5 rounded-3xl card-shadow border-2 border-rose-100 cursor-pointer transition btn-bounce group relative overflow-hidden">
+                    <div class="flex items-start gap-4">
+                        <div class="w-16 h-16 rounded-2xl bg-rose-100 flex items-center justify-center text-3xl group-hover:scale-110 transition">
+                            🤝
+                        </div>
+                        <div class="flex-1">
+                            <span class="text-xs font-bold text-rose-600 uppercase tracking-wider">โหมดโบนัส</span>
+                            <h3 class="text-lg font-bold text-slate-800 mb-1">การตอบสนองทางสังคม</h3>
+                            <p class="text-xs text-slate-500 mb-3">เลือกคำพูดและการกระทำที่เห็นอกเห็นใจผู้อื่น</p>
+                            <div class="w-full bg-slate-100 rounded-full h-2">
+                                <div id="lvl4-progress" class="bg-rose-500 h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. GAMEPLAY SCENARIO SCREEN -->
+        <section id="screen-gameplay" class="hidden space-y-4">
+            <!-- Top Progress Info -->
+            <div class="bg-white rounded-2xl p-4 card-shadow border border-sky-100 flex justify-between items-center">
+                <button onclick="showScreen('headquarters')" class="text-slate-500 hover:text-slate-800 font-medium text-sm flex items-center gap-1 btn-bounce">
+                    ⬅️ กลับหน้าหลัก
+                </button>
+                <div class="text-center">
+                    <span id="current-level-title" class="text-xs font-bold text-teal-600 uppercase tracking-wider block">ระดับที่ 1</span>
+                    <span id="question-tracker" class="text-sm font-semibold text-slate-700">ข้อที่ 1 / 4</span>
+                </div>
+                <button onclick="triggerVoiceNarration()" class="p-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-xl text-sm font-medium transition flex items-center gap-1 btn-bounce" title="อ่านโจทย์ให้ฟัง">
+                    🔊 อ่านโจทย์
+                </button>
+            </div>
+
+            <!-- Main Scenario Card -->
+            <div class="bg-white rounded-3xl p-5 md:p-6 card-shadow border border-sky-100 space-y-6">
+                <!-- Situation Description -->
+                <div class="bg-sky-50/70 border border-sky-100 p-4 rounded-2xl text-center relative">
+                    <p id="scenario-text" class="text-base md:text-lg font-medium text-slate-800 leading-relaxed">
+                        "มีอา กำลังได้รับของขวัญวันเกิดชิ้นใหญ่จากเพื่อนๆ ของเธอ"
+                    </p>
+                </div>
+
+                <!-- SVG Visual Character Container -->
+                <div class="flex justify-center items-center py-2 bg-gradient-to-b from-slate-50 to-white rounded-2xl border border-slate-100 min-h-[180px]">
+                    <div id="character-svg-container" class="w-44 h-44 flex items-center justify-center">
+                        <!-- Dynamic SVG cartoon will be injected here -->
+                    </div>
+                </div>
+
+                <!-- Hint Area -->
+                <div class="flex justify-between items-center gap-2">
+                    <button onclick="useHint()" id="hint-btn" class="px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-xl text-xs md:text-sm font-semibold transition flex items-center gap-1.5 btn-bounce">
+                        💡 ขอคำใบ้ (<span id="hint-level-text">ขั้นที่ 1/3</span>)
+                    </button>
+                    <div id="hint-box" class="hidden flex-1 p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs md:text-sm text-amber-900 animate-fade-in">
+                        <!-- Hint text injected here -->
+                    </div>
+                </div>
+
+                <!-- Option Buttons -->
+                <div class="space-y-2.5">
+                    <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider text-center">เลือกคำตอบที่ถูกต้องที่สุด</p>
+                    <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <!-- Dynamic Option Buttons -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. FEEDBACK MODAL / OVERLAY -->
+        <div id="feedback-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+            <div class="bg-white rounded-3xl p-6 max-w-md w-full card-shadow border border-white text-center space-y-4 animate-scale-up">
+                <div id="feedback-icon" class="text-6xl my-2">🎉</div>
+                <h3 id="feedback-title" class="text-2xl font-bold text-slate-800">ถูกต้องเลย!</h3>
+                <p id="feedback-explanation" class="text-slate-600 text-sm leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                    มีอารู้สึกดีใจ เพราะเธอได้รับของขวัญที่ประทับใจจากเพื่อนๆ
+                </p>
+
+                <!-- Unlocked Card Notification -->
+                <div id="unlocked-card-banner" class="hidden bg-purple-50 border border-purple-200 p-3 rounded-2xl flex items-center justify-center gap-2 text-purple-800 text-xs font-semibold">
+                    <span>🎴</span> คุณปลดล็อกการ์ดอารมณ์ใหม่แล้ว!
+                </div>
+
+                <button onclick="nextScenario()" class="w-full py-3.5 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-2xl shadow-md hover:shadow-lg transition btn-bounce text-base">
+                    ข้อต่อไป ➡️
+                </button>
+            </div>
+        </div>
+
+        <!-- 4. LEARNING ROOM (EMOTION CARDS GALLERY) -->
+        <section id="screen-learning-room" class="hidden space-y-4">
+            <div class="bg-white rounded-2xl p-4 card-shadow border border-sky-100 flex justify-between items-center">
+                <button onclick="showScreen('headquarters')" class="text-slate-500 hover:text-slate-800 font-medium text-sm flex items-center gap-1 btn-bounce">
+                    ⬅️ กลับหน้าหลัก
+                </button>
+                <h2 class="text-lg font-bold text-purple-800">📖 ห้องเรียนรู้การ์ดอารมณ์</h2>
+                <div class="text-xs font-semibold text-purple-600 bg-purple-50 px-3 py-1 rounded-xl">
+                    การ์ดสะสม
+                </div>
+            </div>
+
+            <div id="cards-gallery-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Dynamically populated cards -->
+            </div>
+        </section>
+
+        <!-- 5. SETTINGS SCREEN -->
+        <section id="screen-settings" class="hidden space-y-4">
+            <div class="bg-white rounded-2xl p-4 card-shadow border border-sky-100 flex items-center justify-between">
+                <button onclick="showScreen('headquarters')" class="text-slate-500 hover:text-slate-800 font-medium text-sm flex items-center gap-1 btn-bounce">
+                    ⬅️ กลับหน้าหลัก
+                </button>
+                <h2 class="text-lg font-bold text-slate-800">⚙️ การตั้งค่าระบบ</h2>
+                <div></div>
+            </div>
+
+            <div class="bg-white rounded-3xl p-6 card-shadow border border-sky-100 space-y-6">
+                <!-- Text Size Setting -->
+                <div class="flex justify-between items-center pb-4 border-b border-slate-100">
+                    <div>
+                        <h4 class="font-semibold text-slate-800">ขนาดตัวอักษร</h4>
+                        <p class="text-xs text-slate-400">ปรับขนาดข้อความให้มองเห็นได้ชัดเจน</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="setFontSize('sm')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-semibold">เล็ก</button>
+                        <button onclick="setFontSize('md')" class="px-3 py-1.5 bg-teal-100 text-teal-800 rounded-xl text-xs font-semibold">ปานกลาง</button>
+                        <button onclick="setFontSize('lg')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-xl text-xs font-semibold">ใหญ่</button>
+                    </div>
+                </div>
+
+                <!-- Sound Effects Setting -->
+                <div class="flex justify-between items-center pb-4 border-b border-slate-100">
+                    <div>
+                        <h4 class="font-semibold text-slate-800">เสียงเอฟเฟกต์ (SFX)</h4>
+                        <p class="text-xs text-slate-400">เปิด/ปิด เสียงประกอบการตอบคำถาม</p>
+                    </div>
+                    <input type="checkbox" id="setting-sfx-toggle" checked onchange="toggleAudio()" class="w-6 h-6 accent-teal-500 cursor-pointer">
+                </div>
+
+                <!-- Speech Narration Setting -->
+                <div class="flex justify-between items-center pb-4 border-b border-slate-100">
+                    <div>
+                        <h4 class="font-semibold text-slate-800">เสียงอ่านโจทย์อัตโนมัติ</h4>
+                        <p class="text-xs text-slate-400">อ่านคำถามด้วยเสียงสังเคราะห์ภาษาไทย</p>
+                    </div>
+                    <input type="checkbox" id="setting-voice-toggle" checked onchange="toggleAutoVoice()" class="w-6 h-6 accent-teal-500 cursor-pointer">
+                </div>
+
+                <!-- Reset Progress Button -->
+                <div class="pt-2">
+                    <button onclick="resetAllProgress()" class="w-full py-3 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-2xl text-sm font-semibold transition border border-rose-200 btn-bounce">
+                        🔄 รีเซ็ตความคืบหน้าทั้งหมด
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="max-w-4xl mx-auto w-full text-center py-4 text-xs text-slate-400">
+        Feel Finder: Look, Think, Feel • ออกแบบมาเพื่อการเรียนรู้อย่างอ่อนโยนและเป็นมิตร
+    </footer>
+
+    <script>
+        // Web Audio API synthesizer for child-friendly gentle sound effects
+        const AudioEngine = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            },
+            playCorrect() {
+                if (!state.settings.audioEnabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                
+                // Pleasant major triad chime
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+                    
+                    gain.gain.setValueAtTime(0.15, now + idx * 0.08);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.3);
+                    
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + idx * 0.08);
+                    osc.stop(now + idx * 0.08 + 0.3);
+                });
+            },
+            playIncorrect() {
+                if (!state.settings.audioEnabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                
+                // Gentle low warm double-tone (no harsh buzzy sounds)
+                [330, 293.66].forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.15);
+                    
+                    gain.gain.setValueAtTime(0.1, now + idx * 0.15);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.15 + 0.25);
+                    
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + idx * 0.15);
+                    osc.stop(now + idx * 0.15 + 0.25);
+                });
+            },
+            playHint() {
+                if (!state.settings.audioEnabled) return;
+                this.init();
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, now);
+                osc.frequency.exponentialRampToValueAtTime(880, now + 0.2);
+                
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.2);
+            }
+        };
+
+        // SVG Vector Art Generator for Expressions & Characters
+        function getCharacterSVG(emotion, characterName = "Mia") {
+            const eyeVariants = {
+                happy: `<circle cx="35" cy="45" r="4" fill="#334155"/><circle cx="65" cy="45" r="4" fill="#334155"/>`,
+                sad: `<path d="M 30 48 Q 35 44 40 48" stroke="#334155" stroke-width="3" fill="none"/><path d="M 60 48 Q 65 44 70 48" stroke="#334155" stroke-width="3" fill="none"/>`,
+                angry: `<path d="M 28 40 L 42 46" stroke="#334155" stroke-width="3.5" stroke-linecap="round"/><path d="M 72 40 L 58 46" stroke="#334155" stroke-width="3.5" stroke-linecap="round"/><circle cx="35" cy="50" r="3.5" fill="#334155"/><circle cx="65" cy="50" r="3.5" fill="#334155"/>`,
+                scared: `<circle cx="35" cy="45" r="6" fill="#334155"/><circle cx="35" cy="45" r="2" fill="#fff"/><circle cx="65" cy="45" r="6" fill="#334155"/><circle cx="65" cy="45" r="2" fill="#fff"/>`,
+                surprised: `<circle cx="35" cy="42" r="5" fill="#334155"/><circle cx="65" cy="42" r="5" fill="#334155"/>`,
+                worried: `<path d="M 28 44 Q 35 40 42 45" stroke="#334155" stroke-width="3" fill="none"/><path d="M 58 45 Q 65 40 72 44" stroke="#334155" stroke-width="3" fill="none"/><circle cx="35" cy="48" r="3.5" fill="#334155"/><circle cx="65" cy="48" r="3.5" fill="#334155"/>`,
+                disappointed: `<path d="M 30 46 L 40 46" stroke="#334155" stroke-width="3"/><path d="M 60 46 L 70 46" stroke="#334155" stroke-width="3"/>`,
+                calm: `<path d="M 30 45 Q 35 50 40 45" stroke="#334155" stroke-width="3" fill="none"/><path d="M 60 45 Q 65 50 70 45" stroke="#334155" stroke-width="3" fill="none"/>`,
+                proud: `<path d="M 30 45 Q 35 42 40 45" stroke="#334155" stroke-width="3" fill="none"/><path d="M 60 45 Q 65 42 70 45" stroke="#334155" stroke-width="3" fill="none"/>`,
+                frustrated: `<path d="M 28 42 L 42 44" stroke="#334155" stroke-width="3"/><path d="M 72 42 L 58 44" stroke="#334155" stroke-width="3"/><line x1="32" y1="50" x2="38" y2="50" stroke="#334155" stroke-width="3"/><line x1="62" y1="50" x2="68" y2="50" stroke="#334155" stroke-width="3"/>`,
+                excited: `<path d="M 28 42 Q 35 35 42 42" stroke="#334155" stroke-width="3" fill="none"/><path d="M 58 42 Q 65 35 72 42" stroke="#334155" stroke-width="3" fill="none"/>`,
+                nervous: `<circle cx="35" cy="45" r="4" fill="#334155"/><circle cx="65" cy="45" r="4" fill="#334155"/>`
+            };
+
+            const mouthVariants = {
+                happy: `<path d="M 35 62 Q 50 78 65 62" stroke="#334155" stroke-width="3.5" fill="#F87171" stroke-linecap="round"/>`,
+                sad: `<path d="M 35 70 Q 50 58 65 70" stroke="#334155" stroke-width="3.5" fill="none" stroke-linecap="round"/>`,
+                angry: `<path d="M 35 68 L 65 68" stroke="#334155" stroke-width="3.5" stroke-linecap="round"/>`,
+                scared: `<ellipse cx="50" cy="68" rx="8" ry="10" fill="#334155"/>`,
+                surprised: `<circle cx="50" cy="68" r="9" fill="#334155"/>`,
+                worried: `<path d="M 35 68 Q 42 63 50 68 T 65 68" stroke="#334155" stroke-width="3" fill="none"/>`,
+                disappointed: `<path d="M 38 68 Q 50 63 62 68" stroke="#334155" stroke-width="3" fill="none"/>`,
+                calm: `<path d="M 38 65 Q 50 70 62 65" stroke="#334155" stroke-width="3" fill="none"/>`,
+                proud: `<path d="M 35 62 Q 50 72 65 62" stroke="#334155" stroke-width="3" fill="none"/>`,
+                frustrated: `<path d="M 35 70 Q 42 62 50 68 T 65 62" stroke="#334155" stroke-width="3" fill="none"/>`,
+                excited: `<path d="M 32 60 Q 50 82 68 60 Z" fill="#F87171" stroke="#334155" stroke-width="3"/>`,
+                nervous: `<path d="M 36 68 Q 43 72 50 68 T 64 68" stroke="#334155" stroke-width="3" fill="none"/>`
+            };
+
+            const bodyVariants = {
+                scared: `<path d="M 30 85 L 20 65 M 70 85 L 80 65" stroke="#38BDF8" stroke-width="8" stroke-linecap="round"/>`,
+                proud: `<path d="M 25 90 Q 50 80 75 90" fill="#38BDF8"/>`,
+                default: `<path d="M 30 90 Q 50 82 70 90" fill="#38BDF8"/>`
+            };
+
+            const hairColor = characterName === "Leo" ? "#F59E0B" : "#8B5CF6";
+
+            return `
+            <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-md">
+                <!-- Hair Back -->
+                <path d="M 20 50 Q 50 10 80 50" fill="${hairColor}" />
+                <!-- Body -->
+                ${bodyVariants[emotion] || bodyVariants.default}
+                <!-- Head -->
+                <circle cx="50" cy="52" r="28" fill="#FED7AA" />
+                <!-- Hair Front -->
+                <path d="M 22 45 Q 50 20 78 45 Q 50 32 22 45" fill="${hairColor}" />
+                <!-- Eyes -->
+                ${eyeVariants[emotion] || eyeVariants.happy}
+                <!-- Mouth -->
+                ${mouthVariants[emotion] || mouthVariants.happy}
+                <!-- Cheeks -->
+                <circle cx="28" cy="58" r="4" fill="#FCA5A5" opacity="0.6"/>
+                <circle cx="72" cy="58" r="4" fill="#FCA5A5" opacity="0.6"/>
+            </svg>
+            `;
+        }
+
+        const scenariosData = {
+            1: [
+                {
+                    id: 'happy_1',
+                    character: 'Mia',
+                    emotion: 'happy',
+                    label: 'สุข (Happy)',
+                    text: 'มีอา กำลังได้รับของขวัญวันเกิดชิ้นใหญ่จากเพื่อนๆ ของเธอ',
+                    hints: [
+                        'มองไปที่ริมฝีปากของมีอาสิ!',
+                        'มีอากำลังยิ้มกว้าง และตาสดใสมาก',
+                        'เมื่อได้ของขวัญที่ชอบ คนส่วนใหญ่จะรู้สึกมีความสุข'
+                    ],
+                    options: ['สุข (Happy)', 'เศร้า (Sad)', 'โกรธ (Angry)', 'กลัว (Scared)'],
+                    correct: 'สุข (Happy)',
+                    explanation: 'มีอารู้สึกสุข/ดีใจ เพราะเธอได้รับของขวัญที่น่าประทับใจจากเพื่อนๆ',
+                    card: { emotion: 'สุข (Happy)', definition: 'ความรู้สึกเบิกบาน ยิ้มแย้ม เมื่อได้รับสิ่งดีๆ', icon: '😊' }
+                },
+                {
+                    id: 'sad_1',
+                    character: 'Leo',
+                    emotion: 'sad',
+                    label: 'เศร้า (Sad)',
+                    text: 'ลีโอ ทำไอศกรีมหล่นลงพื้นก่อนจะได้กิน',
+                    hints: [
+                        'สังเกตที่มุมปากของลีโอนะ',
+                        'มุมปากตกและคอห้อยลง',
+                        'การสูญเสียของกินที่ชอบทำให้รู้สึกเสียใจ/เศร้า'
+                    ],
+                    options: ['สุข (Happy)', 'เศร้า (Sad)', 'โกรธ (Angry)', 'กลัว (Scared)'],
+                    correct: 'เศร้า (Sad)',
+                    explanation: 'ลีโอย่อมรู้สึกเศร้าหรือเสียดาย เพราะไอศกรีมแสนอร่อยของเขาหล่นเสียแล้ว',
+                    card: { emotion: 'เศร้า (Sad)', definition: 'ความรู้สึกเสียใจ มุมปากตก เมื่อเจอกับเรื่องที่ผิดหวัง', icon: '😢' }
+                },
+                {
+                    id: 'angry_1',
+                    character: 'Leo',
+                    emotion: 'angry',
+                    label: 'โกรธ (Angry)',
+                    text: 'มีคนมาแย่งของเล่นไปจากมือของลีโอโดยไม่ขออนุญาต',
+                    hints: [
+                        'สังเกตคิ้วของลีโอนะ',
+                        'คิ้วขมวดเข้าหากัน ปากเม้มแน่น',
+                        'การถูกโดนแย่งของกะทันหันทำให้รู้สึกไม่พอใจ'
+                    ],
+                    options: ['สุข (Happy)', 'เศร้า (Sad)', 'โกรธ (Angry)', 'กลัว (Scared)'],
+                    correct: 'โกรธ (Angry)',
+                    explanation: 'ลีโอกำลังรู้สึกโกรธหรือไม่พอใจ เพราะถูกละเมิดสิทธิโดยการแย่งของเล่น',
+                    card: { emotion: 'โกรธ (Angry)', definition: 'ความรู้สึกไม่พอใจ คิ้วขมวด เมื่อโดนขัดใจหรือทำสิ่งไม่ถูกต้อง', icon: '😠' }
+                },
+                {
+                    id: 'scared_1',
+                    character: 'Mia',
+                    emotion: 'scared',
+                    label: 'กลัว (Scared)',
+                    text: 'มีอา ได้ยินเสียงฟ้าผ่าดังสนั่นนอกบ้านขณะฝนตกหนัก',
+                    hints: [
+                        'มองที่ดวงตาของมีอาสิ',
+                        'เบิกตากว้าง และเอามือจับตัวไว้',
+                        'เสียงดังมากๆ ที่ไม่คาดคิดมักทำให้เรารู้สึกไม่ปลอดภัย'
+                    ],
+                    options: ['สุข (Happy)', 'เศร้า (Sad)', 'โกรธ (Angry)', 'กลัว (Scared)'],
+                    correct: 'กลัว (Scared)',
+                    explanation: 'มีอารู้สึกกลัวเพราะเสียงฟ้าผ่าดังและน่าตกใจ',
+                    card: { emotion: 'กลัว (Scared)', definition: 'ความรู้สึกไม่ปลอดภัย ตาเบิกกว้าง เมื่อเจอสิ่งตื่นเต้นหรืออันตราย', icon: '😨' }
+                }
+            ],
+            2: [
+                {
+                    id: 'surprised_1',
+                    character: 'Mia',
+                    emotion: 'surprised',
+                    label: 'ประหลาดใจ (Surprised)',
+                    text: 'เพื่อนๆ แอบจัดงานปาร์ตี้เซอร์ไพรส์วันเกิดให้มีอาโดยที่เธอไม่รู้ตัวมาก่อน',
+                    hints: [
+                        'สังเกตอวัยวะบนใบหน้าทั้งหมด',
+                        'อ้าปากค้าง ตาโต',
+                        'เกิดขึ้นเมื่อมีสิ่งไม่คาดคิดเกิดขึ้นกะทันหัน'
+                    ],
+                    options: ['ประหลาดใจ (Surprised)', 'กังวล (Worried)', 'ผิดหวัง (Disappointed)', 'สงบ (Calm)'],
+                    correct: 'ประหลาดใจ (Surprised)',
+                    explanation: 'มีอารู้สึกประหลาดใจและตกใจในทางที่ดี เพราะเธอไม่ได้คาดคิดว่าจะมีการจัดปาร์ตี้',
+                    card: { emotion: 'ประหลาดใจ (Surprised)', definition: 'ความรู้สึกแปลกใจเมื่อเจอสิ่งที่ไม่ได้คาดคิด ตาโต ปากอ้า', icon: '😮' }
+                },
+                {
+                    id: 'worried_1',
+                    character: 'Leo',
+                    emotion: 'worried',
+                    label: 'กังวล (Worried)',
+                    text: 'ลีโอ กำลังรอผลการสอบวิชาคณิตศาสตร์ที่เขาคิดว่าทำไม่ได้',
+                    hints: [
+                        'ดูที่คิ้วและแววตา',
+                        'คิ้วเฉียงขึ้น ตาดูไม่มั่นใจ',
+                        'ความรู้สึกที่ไม่แน่ใจว่าจะเกิดอะไรขึ้นในอนาคต'
+                    ],
+                    options: ['ประหลาดใจ (Surprised)', 'กังวล (Worried)', 'ผิดหวัง (Disappointed)', 'สงบ (Calm)'],
+                    correct: 'กังวล (Worried)',
+                    explanation: 'ลีโอกำลังรู้สึกกังวลเพราะเขากลัวว่าผลสอบจะออกมาไม่ดี',
+                    card: { emotion: 'กังวล (Worried)', definition: 'ความรู้สึกคิดมากหรือเกรงว่าจะเกิดผลลัพธ์ไม่ดี', icon: '😟' }
+                },
+                {
+                    id: 'disappointed_1',
+                    character: 'Mia',
+                    emotion: 'disappointed',
+                    label: 'ผิดหวัง (Disappointed)',
+                    text: 'สวนสนุกต้องปิดทำการในวันที่คุณพ่อตั้งใจพาพามีอาไปเที่ยว',
+                    hints: [
+                        'ดวงตามองต่ำลง',
+                        'ไม่ได้ยิ้ม และถอนหายใจ',
+                        'เกิดขึ้นเมื่อสิ่งที่หวังไว้ไม่เป็นจริง'
+                    ],
+                    options: ['ประหลาดใจ (Surprised)', 'กังวล (Worried)', 'ผิดหวัง (Disappointed)', 'สงบ (Calm)'],
+                    correct: 'ผิดหวัง (Disappointed)',
+                    explanation: 'มีอารู้สึกผิดหวังเพราะเธอตั้งใจรอคอยที่จะไปสวนสนุก แต่กลับไม่ได้ไป',
+                    card: { emotion: 'ผิดหวัง (Disappointed)', definition: 'ความรู้สึกเสียใจเมื่อสิ่งที่คุณหวังไว้ไม่เกิดขึ้นตามคาด', icon: '😞' }
+                },
+                {
+                    id: 'calm_1',
+                    character: 'Leo',
+                    emotion: 'calm',
+                    label: 'สงบ (Calm)',
+                    text: 'ลีโอ นั่งอ่านหนังสือเล่มโปรดในห้องที่เงียบสงบและสบาย',
+                    hints: [
+                        'กล้ามเนื้อใบหน้าผ่อนคลาย',
+                        'อมยิ้มเล็กน้อย หายใจสม่ำเสมอ',
+                        'ไม่มีเรื่องเร่งด่วนหรือความเครียด'
+                    ],
+                    options: ['ประหลาดใจ (Surprised)', 'กังวล (Worried)', 'ผิดหวัง (Disappointed)', 'สงบ (Calm)'],
+                    correct: 'สงบ (Calm)',
+                    explanation: 'ลีโอย่อมรู้สึกสงบ ผ่อนคลาย เพราะบรรยากาศรอบตัวปลอดภัยและสบายใจ',
+                    card: { emotion: 'สงบ (Calm)', definition: 'ความรู้สึกผ่อนคลาย สบายใจ ไร้ความเครียด', icon: '😌' }
+                }
+            ],
+            3: [
+                {
+                    id: 'proud_1',
+                    character: 'Leo',
+                    emotion: 'proud',
+                    label: 'ภาคภูมิใจ (Proud)',
+                    text: 'ลีโอ ฝึกซ้อมวาดภาพมานานหลายสัปดาห์ จนได้รับรางวัลชนะเลิศ',
+                    hints: [
+                        'อกผายไหล่ตึง',
+                        'ยิ้มมั่นใจ สบตาตรง',
+                        'เกิดขึ้นหลังจากพยายามทำสิ่งยากๆ ได้สำเร็จ'
+                    ],
+                    options: ['ภาคภูมิใจ (Proud)', 'หงุดหงิด (Frustrated)', 'ตื่นเต้น (Excited)', 'ประหม่า (Nervous)'],
+                    correct: 'ภาคภูมิใจ (Proud)',
+                    explanation: 'ลีโอกำลังรู้สึกภาคภูมิใจในตนเอง เพราะความพยายามของเขาประสบความสำเร็จ',
+                    card: { emotion: 'ภาคภูมิใจ (Proud)', definition: 'ความรู้สึกยินดีและอิ่มเอมใจในความสำเร็จของตนเอง', icon: '🏆' }
+                },
+                {
+                    id: 'frustrated_1',
+                    character: 'Mia',
+                    emotion: 'frustrated',
+                    label: 'หงุดหงิด (Frustrated)',
+                    text: 'มีอา พยายามต่อตัวต่อเลโก้ชิ้นสุดท้ายหลายครั้งแต่ก็พังลงมาทุกครั้ง',
+                    hints: [
+                        'มือและใบหน้าดูเครียด',
+                        'คิ้วขมวด พ่นลมหายใจออก',
+                        'เกิดขึ้นเมื่อทำเรื่องเดิมซ้ำๆ แต่ติดขัดทำไม่สำเร็จ'
+                    ],
+                    options: ['ภาคภูมิใจ (Proud)', 'หงุดหงิด (Frustrated)', 'ตื่นเต้น (Excited)', 'ประหม่า (Nervous)'],
+                    correct: 'หงุดหงิด (Frustrated)',
+                    explanation: 'มีอารู้สึกหงุดหงิดเพราะอุปสรรคที่ทำให้เธอทำสิ่งใจมุ่งหวังไม่สำเร็จสักที',
+                    card: { emotion: 'หงุดหงิด (Frustrated)', definition: 'ความรู้สึกอึดอัดใจเมื่อติดขัดและทำสิ่งมุ่งหวังไม่ได้', icon: '😤' }
+                },
+                {
+                    id: 'excited_1',
+                    character: 'Mia',
+                    emotion: 'excited',
+                    label: 'ตื่นเต้น (Excited)',
+                    text: 'พรุ่งนี้เช้า มีอากำลังจะได้เดินทางไปเที่ยวทะเลเป็นครั้งแรก',
+                    hints: [
+                        'ตาเป็นประกาย',
+                        'ยิ้มกว้าง กระโดดโลดเต้น',
+                        'เกิดขึ้นเมื่อเฝ้ารอสิ่งสนุกสนานที่กำลังจะมาถึง'
+                    ],
+                    options: ['ภาคภูมิใจ (Proud)', 'หงุดหงิด (Frustrated)', 'ตื่นเต้น (Excited)', 'ประหม่า (Nervous)'],
+                    correct: 'ตื่นเต้น (Excited)',
+                    explanation: 'มีอารู้สึกตื่นเต้นอย่างมาก เพราะกำลังจะได้ไปเปิดประสบการณ์ใหม่ที่เธอรอคอย',
+                    card: { emotion: 'ตื่นเต้น (Excited)', definition: 'ความรู้สึกกระปรี้กระเปร่าเฝ้ารอสิ่งสนุกๆ ที่จะเกิดขึ้น', icon: '🤩' }
+                },
+                {
+                    id: 'nervous_1',
+                    character: 'Leo',
+                    emotion: 'nervous',
+                    label: 'ประหม่า (Nervous)',
+                    text: 'ลีโอ กำลังจะเดินออกไปรายงานหน้าชั้นเรียนต่อหน้าเพื่อนๆ ทุกคน',
+                    hints: [
+                        'เหงื่อออกเล็กน้อย มือไม้เกร็ง',
+                        'สายตาลูกหลอน รอยยิ้มเกร็งๆ',
+                        'เกิดขึ้นเมื่อต้องตกเป็นจุดสนใจหรือทำสิ่งไม่คุ้นเคย'
+                    ],
+                    options: ['ภาคภูมิใจ (Proud)', 'หงุดหงิด (Frustrated)', 'ตื่นเต้น (Excited)', 'ประหม่า (Nervous)'],
+                    correct: 'ประหม่า (Nervous)',
+                    explanation: 'ลีโอกำลังรู้สึกประหม่าและตื่นกลัวการพูดต่อหน้าคนจำนวนมาก',
+                    card: { emotion: 'ประหม่า (Nervous)', definition: 'ความรู้สึกตื่นเต้นผสมความกลัว ไม่มั่นใจเมื่อต้องแสดงออก', icon: 'ง' }
+                }
+            ],
+            4: [
+                {
+                    id: 'bonus_1',
+                    character: 'Mia',
+                    emotion: 'sad',
+                    text: 'มีอา กำลังนั่งร้องไห้คนเดียวบนม้านั่งเพราะหาหมาน้อยที่รักไม่พบ',
+                    hints: [
+                        'สังเกตว่ามีอากำลังเสียใจมาก',
+                        'คำพูดที่ดีควรแสดงความเห็นอกเห็นใจ',
+                        'เสนอตัวช่วยตามหาหมาน้อย'
+                    ],
+                    options: [
+                        'เดินเข้าไปถามด้วยน้ำเสียงอ่อนโยน: "มีอา เป็นอะไรไหม ให้เราช่วยหาหมาน้อยด้วยไหม?"',
+                        'เดินผ่านไปโดยไม่สนใจเพราะไม่ใช่เรื่องของเรา',
+                        'บอกมีอาว่า "ร้องไห้ไปก็ไม่ได้ช่วยอะไรหรอกนะ"'
+                    ],
+                    correct: 'เดินเข้าไปถามด้วยน้ำเสียงอ่อนโยน: "มีอา เป็นอะไรไหม ให้เราช่วยหาหมาน้อยด้วยไหม?"',
+                    explanation: 'การแสดงความใส่ใจ อ่อนโยน และเสนอความช่วยเหลือ เป็นการตอบสนองทางสังคมที่ดีเยี่ยม',
+                    card: { emotion: 'การเห็นอกเห็นใจ (Empathy)', definition: 'การใส่ใจความรู้สึกผู้อื่นและเสนอความช่วยเหลือด้วยความอ่อนโยน', icon: '🤝' }
+                },
+                {
+                    id: 'bonus_2',
+                    character: 'Leo',
+                    emotion: 'angry',
+                    text: 'ลีโอ กำลังโกรธที่ต่อโมเดลไม่สำเร็จและเผลอขว้างชิ้นส่วนลงพื้น',
+                    hints: [
+                        'ลีโอกำลังอารมณ์ร้อน',
+                        'ไม่ควรเข้าไปด่าทอหรือซ้ำเติม',
+                        'ให้เวลาเขาคลายอารมณ์แล้วค่อยพูดคุย'
+                    ],
+                    options: [
+                        'รอให้ลีโอสงบลง แล้วค่อยๆ ช่วยเก็บชิ้นส่วนและพูดว่า "พักสักแป๊บไหม เดี๋ยวเราช่วยต่อใหม่นะ"',
+                        'หัวเราะเยาะลีโอที่ต่อโมเดลไม่สำเร็จ',
+                        'ตะโกนใส่ลีโอว่า "ขว้างทำไมเนี่ย!"'
+                    ],
+                    correct: 'รอให้ลีโอสงบลง แล้วค่อยๆ ช่วยเก็บชิ้นส่วนและพูดว่า "พักสักแป๊บไหม เดี๋ยวเราช่วยต่อใหม่นะ"',
+                    explanation: 'การให้เวลาผู้อื่นคูลดาวน์อารมณ์ แล้วช่วยแก้ปัญหาอย่างสงบช่วยลดความขัดแย้ง',
+                    card: { emotion: 'การให้กำลังใจ (Encouragement)', definition: 'การปลอบประโลมและช่วยแก้ไขปัญหาในยามขัดเคืองใจ', icon: '💙' }
+                }
+            ]
+        };
+
+        // Global Application State
+        const state = {
+            score: 0,
+            currentLevel: 1,
+            currentScenarioIndex: 0,
+            activeScenarios: [],
+            currentHintStep: 0,
+            unlockedCards: new Set(),
+            settings: {
+                audioEnabled: true,
+                autoVoice: true,
+                fontSize: 'md'
+            },
+            levelProgress: { 1: 0, 2: 0, 3: 0, 4: 0 }
+        };
+
+        // Initialize App
+        window.onload = function() {
+            loadSavedData();
+            updateUIState();
+            showScreen('headquarters');
+        };
+
+        function saveProgress() {
+            const payload = {
+                score: state.score,
+                unlockedCards: Array.from(state.unlockedCards),
+                levelProgress: state.levelProgress,
+                settings: state.settings
+            };
+            localStorage.setItem('feel_finder_data', JSON.stringify(payload));
+        }
+
+        function loadSavedData() {
+            const raw = localStorage.getItem('feel_finder_data');
+            if (raw) {
+                try {
+                    const parsed = JSON.parse(raw);
+                    state.score = parsed.score || 0;
+                    state.unlockedCards = new Set(parsed.unlockedCards || []);
+                    state.levelProgress = parsed.levelProgress || { 1: 0, 2: 0, 3: 0, 4: 0 };
+                    state.settings = { ...state.settings, ...(parsed.settings || {}) };
+                } catch(e) {
+                    console.error("Error loading saved data", e);
+                }
+            }
+        }
+
+        function showScreen(screenName) {
+            ['headquarters', 'gameplay', 'learning-room', 'settings'].forEach(s => {
+                document.getElementById(`screen-${s}`).classList.add('hidden');
+            });
+            document.getElementById(`screen-${screenName}`).classList.remove('hidden');
+
+            if (screenName === 'learning-room') {
+                renderLearningRoom();
+            }
+            updateUIState();
+        }
+
+        function updateUIState() {
+            document.getElementById('header-score').textContent = state.score;
+            document.getElementById('unlocked-cards-count').textContent = state.unlockedCards.size;
+
+            // Update Level Progress Bars
+            for (let i = 1; i <= 4; i++) {
+                const total = scenariosData[i].length;
+                const done = state.levelProgress[i] || 0;
+                const pct = Math.min(100, Math.round((done / total) * 100));
+                const bar = document.getElementById(`lvl${i}-progress`);
+                if (bar) bar.style.width = `${pct}%`;
+            }
+
+            // Sync Settings UI
+            document.getElementById('setting-sfx-toggle').checked = state.settings.audioEnabled;
+            document.getElementById('setting-voice-toggle').checked = state.settings.autoVoice;
+        }
+
+        // Utility to Shuffle Arrays (Randomize Questions for high replayability)
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function startLevel(levelNum) {
+            state.currentLevel = levelNum;
+            state.currentScenarioIndex = 0;
+            // Randomize scenarios order upon starting/replaying level!
+            state.activeScenarios = shuffleArray(scenariosData[levelNum]);
+            
+            showScreen('gameplay');
+            loadScenario();
+        }
+
+        function loadScenario() {
+            const scenario = state.activeScenarios[state.currentScenarioIndex];
+            state.currentHintStep = 0;
+
+            // Update Progress Tracking Text
+            const levelTitles = {
+                1: 'ระดับที่ 1: อารมณ์พื้นฐาน',
+                2: 'ระดับที่ 2: ตามหาคำใบ้อารมณ์',
+                3: 'ระดับที่ 3: อารมณ์ในบริบทสังคม',
+                4: 'โหมดโบนัส: การตอบสนองทางสังคม'
+            };
+            document.getElementById('current-level-title').textContent = levelTitles[state.currentLevel];
+            document.getElementById('question-tracker').textContent = `ข้อที่ ${state.currentScenarioIndex + 1} / ${state.activeScenarios.length}`;
+
+            // Set Scenario Text
+            document.getElementById('scenario-text').textContent = `"${scenario.text}"`;
+
+            // Inject Visual Vector SVG Avatar
+            const svgContainer = document.getElementById('character-svg-container');
+            svgContainer.innerHTML = getCharacterSVG(scenario.emotion, scenario.character);
+
+            // Reset Hint UI
+            document.getElementById('hint-box').classList.add('hidden');
+            document.getElementById('hint-level-text').textContent = `ขั้นที่ 1/3`;
+
+            // Render Options
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            // Shuffle options for extra excitement
+            const shuffledOptions = shuffleArray(scenario.options);
+
+            shuffledOptions.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = `p-4 bg-slate-50 hover:bg-teal-50 border-2 border-slate-200 hover:border-teal-300 rounded-2xl text-slate-800 font-medium text-left transition text-sm md:text-base card-shadow btn-bounce flex items-center justify-between group`;
+                btn.innerHTML = `
+                    <span>${opt}</span>
+                    <span class="opacity-0 group-hover:opacity-100 transition text-teal-600">👉</span>
+                `;
+                btn.onclick = () => handleAnswer(opt, scenario);
+                container.appendChild(btn);
+            });
+
+            // Trigger Speech Narration if enabled
+            if (state.settings.autoVoice) {
+                setTimeout(triggerVoiceNarration, 300);
+            }
+        }
+
+        function useHint() {
+            const scenario = state.activeScenarios[state.currentScenarioIndex];
+            const hintBox = document.getElementById('hint-box');
+            
+            AudioEngine.playHint();
+
+            if (state.currentHintStep < scenario.hints.length) {
+                hintBox.textContent = `💡 คำใบ้ที่ ${state.currentHintStep + 1}: ${scenario.hints[state.currentHintStep]}`;
+                hintBox.classList.remove('hidden');
+                state.currentHintStep++;
+                document.getElementById('hint-level-text').textContent = `ขั้นที่ ${Math.min(3, state.currentHintStep + 1)}/3`;
+            }
+        }
+
+        function handleAnswer(selectedOption, scenario) {
+            const isCorrect = selectedOption === scenario.correct;
+            const modal = document.getElementById('feedback-modal');
+            const iconEl = document.getElementById('feedback-icon');
+            const titleEl = document.getElementById('feedback-title');
+            const expEl = document.getElementById('feedback-explanation');
+            const banner = document.getElementById('unlocked-card-banner');
+
+            if (isCorrect) {
+                AudioEngine.playCorrect();
+                state.score += 10;
+                iconEl.textContent = '🎉';
+                titleEl.textContent = 'ถูกต้องเลย!';
+                titleEl.className = 'text-2xl font-bold text-teal-600';
+
+                // Confetti animation
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+                }
+
+                // Unlock Card
+                if (scenario.card && !state.unlockedCards.has(scenario.card.emotion)) {
+                    state.unlockedCards.add(scenario.card.emotion);
+                    banner.classList.remove('hidden');
+                } else {
+                    banner.classList.add('hidden');
+                }
+            } else {
+                AudioEngine.playIncorrect();
+                iconEl.textContent = '💡';
+                titleEl.textContent = 'เกือบถูกต้องแล้วนะ!';
+                titleEl.className = 'text-2xl font-bold text-amber-600';
+                banner.classList.add('hidden');
+            }
+
+            expEl.textContent = scenario.explanation;
+            modal.classList.remove('hidden');
+
+            // Save Progress
+            state.levelProgress[state.currentLevel] = Math.max(
+                state.levelProgress[state.currentLevel] || 0,
+                state.currentScenarioIndex + 1
+            );
+            saveProgress();
+            updateUIState();
+        }
+
+        function nextScenario() {
+            document.getElementById('feedback-modal').classList.add('hidden');
+            state.currentScenarioIndex++;
+
+            if (state.currentScenarioIndex < state.activeScenarios.length) {
+                loadScenario();
+            } else {
+                // Completed Level
+                alert('🌟 ยินดีด้วย! คุณเล่นผ่านระดับนี้สำเร็จเรียบร้อยแล้ว');
+                showScreen('headquarters');
+            }
+        }
+
+        function triggerVoiceNarration() {
+            if (!('speechSynthesis' in window)) return;
+
+            window.speechSynthesis.cancel(); // Stop current speech
+            const scenario = state.activeScenarios[state.currentScenarioIndex];
+            const textToSpeak = scenario ? scenario.text : '';
+
+            if (textToSpeak) {
+                const utterance = new SpeechSynthesisUtterance(textToSpeak);
+                utterance.lang = 'th-TH';
+                utterance.rate = 0.9; // Slightly slower for child accessibility
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function renderLearningRoom() {
+            const container = document.getElementById('cards-gallery-grid');
+            container.innerHTML = '';
+
+            let allCards = [];
+            Object.values(scenariosData).forEach(list => {
+                list.forEach(item => {
+                    if (item.card) allCards.push(item.card);
+                });
+            });
+
+            // Remove duplicate cards
+            const uniqueCards = Array.from(new Set(allCards.map(c => c.emotion)))
+                .map(e => allCards.find(c => c.emotion === e));
+
+            uniqueCards.forEach(c => {
+                const isUnlocked = state.unlockedCards.has(c.emotion);
+                const cardEl = document.createElement('div');
+                cardEl.className = `p-5 rounded-3xl card-shadow border ${isUnlocked ? 'bg-white border-purple-200' : 'bg-slate-100 border-slate-200 opacity-60'} flex flex-col items-center text-center space-y-2 relative`;
+                
+                cardEl.innerHTML = `
+                    <div class="text-5xl my-2">${isUnlocked ? c.icon : '🔒'}</div>
+                    <h4 class="font-bold text-slate-800 text-base">${c.emotion}</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed">${isUnlocked ? c.definition : 'ทำโจทย์ในเกมเพื่อปลดล็อกการ์ดใบนี้'}</p>
+                    ${isUnlocked ? '<span class="text-[10px] bg-purple-100 text-purple-700 px-2.5 py-0.5 rounded-full font-semibold">ปลดล็อกแล้ว</span>' : ''}
+                `;
+                container.appendChild(cardEl);
+            });
+        }
+
+        function toggleAudio() {
+            state.settings.audioEnabled = !state.settings.audioEnabled;
+            saveProgress();
+            updateUIState();
+        }
+
+        function toggleAutoVoice() {
+            state.settings.autoVoice = !state.settings.autoVoice;
+            saveProgress();
+            updateUIState();
+        }
+
+        function setFontSize(size) {
+            state.settings.fontSize = size;
+            document.body.className = document.body.className.replace(/text-size-\w+/g, '');
+            document.body.classList.add(`text-size-${size}`);
+            saveProgress();
+        }
+
+        function resetAllProgress() {
+            if (confirm('คุณต้องการรีเซ็ตคะแนนและการ์ดทั้งหมดจริงหรือไม่?')) {
+                localStorage.removeItem('feel_finder_data');
+                state.score = 0;
+                state.unlockedCards.clear();
+                state.levelProgress = { 1: 0, 2: 0, 3: 0, 4: 0 };
+                saveProgress();
+                updateUIState();
+                showScreen('headquarters');
+            }
+        }
+    </script>
+</body>
+</html>
